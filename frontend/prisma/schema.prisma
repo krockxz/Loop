@@ -98,8 +98,8 @@ model User {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  createdTasks  Task      @relation("CreatedBy")
-  assignedTasks Task      @relation("AssignedTo")
+  createdTasks  Task[]    @relation("CreatedBy")
+  assignedTasks Task[]    @relation("AssignedTo")
   createdEvents TaskEvent[]
   notifications Notification[]
 
