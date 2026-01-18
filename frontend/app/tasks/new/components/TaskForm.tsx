@@ -1,14 +1,56 @@
 /**
  * TaskForm Component
  *
- * Client Component for creating/editing tasks with form validation.
+ * Client Component for creating/editing tasks with shadcn Form validation.
+ * Uses React Hook Form and Zod for schema validation.
  */
 
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import type { User } from '@/lib/types';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+
+// Zod validation schema for task creation
+const taskSchema = z.object({
+  title: z
+    .string()
+    .min(3, 'Title must be at least 3 characters')
+    .max(255, 'Title must be less than 255 characters'),
+  description: z
+    .string()
+    .max(5000, 'Description must be less than 5000 characters')
+    .optional(),
+  assignedTo: z.string().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH'], {
+    required_error: 'Please select a priority',
+  }),
+});
+
+type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface TaskFormProps {
   users: Pick<User, 'id' | 'email'>[];
@@ -17,24 +59,32 @@ interface TaskFormProps {
 export function TaskForm({ users }: TaskFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // Initialize form with React Hook Form and Zod resolver
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      assignedTo: '',
+      priority: 'MEDIUM',
+    },
+  });
+
+  const onSubmit = async (values: TaskFormValues) => {
     setError(null);
-    setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/tasks/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: formData.get('title'),
-          description: formData.get('description') || undefined,
-          assignedTo: formData.get('assignedTo') || undefined,
-          priority: formData.get('priority') || 'MEDIUM',
+          title: values.title,
+          description: values.description || undefined,
+          assignedTo: values.assignedTo || undefined,
+          priority: values.priority,
         }),
       });
 
@@ -49,101 +99,128 @@ export function TaskForm({ users }: TaskFormProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-          {error}
-        </div>
-      )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-          Title *
-        </label>
-        <input
-          id="title"
+        <FormField
+          control={form.control}
           name="title"
-          type="text"
-          required
-          minLength={3}
-          maxLength={255}
-          className="input"
-          placeholder="What needs to be done?"
-          disabled={isLoading}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title *</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="What needs to be done?"
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <textarea
-          id="description"
+        <FormField
+          control={form.control}
           name="description"
-          maxLength={5000}
-          rows={4}
-          className="input"
-          placeholder="Add more details..."
-          disabled={isLoading}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Add more details..."
+                  rows={4}
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-1">
-          Assign To
-        </label>
-        <select
-          id="assignedTo"
+        <FormField
+          control={form.control}
           name="assignedTo"
-          className="input"
-          disabled={isLoading}
-        >
-          <option value="">Unassigned</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.email}
-            </option>
-          ))}
-        </select>
-      </div>
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Assign To</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isSubmitting}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Unassigned" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">Unassigned</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div>
-        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
-          Priority
-        </label>
-        <select
-          id="priority"
+        <FormField
+          control={form.control}
           name="priority"
-          defaultValue="MEDIUM"
-          className="input"
-          disabled={isLoading}
-        >
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-        </select>
-      </div>
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Priority</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isSubmitting}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="LOW">Low</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="HIGH">High</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="flex gap-4">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn btn-primary"
-        >
-          {isLoading ? 'Creating...' : 'Create Task'}
-        </button>
-        <a
-          href="/dashboard"
-          className="btn btn-secondary"
-        >
-          Cancel
-        </a>
-      </div>
-    </form>
+        <div className="flex gap-4">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? 'Creating...' : 'Create Task'}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push('/dashboard')}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
