@@ -1,3 +1,31 @@
+# Documentation directories
 frontend/docs
+**/docs
+
+# MCP Configuration (local only)
 .mcp.json
+**/.mcp.json
+
+# Claude AI assistant files
 CLAUDE.md
+**/CLAUDE.md
+
+# Local configuration files
+*.local.json
+*.config.local.json
+
+# Planning and brain artifacts
+.planning
+.gemini
+
+# UI library config files (shadcn/ui, Aceternity UI)
+frontend/components.json
+frontend/tailwind.config.ts
+frontend/lib/utils.ts
+frontend/postcss.config.mjs
+postcss.config.mjs
+
+# Root-level package files (monorepo)
+node_modules/
+package-lock.json
+package.json
