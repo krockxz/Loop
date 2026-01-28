@@ -4,7 +4,7 @@ Thank you for your interest in contributing to TaskFlow! This document provides 
 
 ## Code of Conduct
 
-By participating in this project, you agree to maintain a respectful and inclusive environment. Please see [CODE_OF_CONDUCT.md](frontend/docs/CODE_OF_CONDUCT.md) for details.
+By participating in this project, you agree to maintain a respectful and inclusive environment. Please see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
 
 ## How to Contribute
 
