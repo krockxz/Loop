@@ -4,14 +4,16 @@
  * Client Component with TanStack Query for data fetching and caching.
  * Includes optimistic updates and realtime subscriptions.
  * Uses shadcn Table, Badge, Avatar, and Select components.
+ * Supports filter-aware query keys for proper cache management.
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import type { Task } from '@/lib/types';
+import type { Task, TaskStatus, TaskPriority, DateRangePreset, TaskFilters } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -92,12 +94,42 @@ const getInitials = (email: string): string => {
 export function TaskTable({ initialTasks, users }: TaskTableProps) {
   const queryClient = useQueryClient();
   const supabase = createClient();
+  const searchParams = useSearchParams();
 
-  // Fetch tasks with TanStack Query
+  // Build filters from URL
+  const filters: TaskFilters = useMemo(() => {
+    const statusParam = searchParams.get('status');
+    const priorityParam = searchParams.get('priority');
+    const assignedTo = searchParams.get('assignedTo') || undefined;
+    const dateRange = searchParams.get('dateRange') as DateRangePreset | undefined;
+    const search = searchParams.get('search') || undefined;
+
+    return {
+      status: statusParam?.split(',').filter(Boolean) as TaskStatus[] | undefined,
+      priority: priorityParam?.split(',').filter(Boolean) as TaskPriority[] | undefined,
+      assignedTo,
+      dateRange,
+      search,
+    };
+  }, [searchParams]);
+
+  // Build query string from filters
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    if (filters.status?.length) params.set('status', filters.status.join(','));
+    if (filters.priority?.length) params.set('priority', filters.priority.join(','));
+    if (filters.assignedTo) params.set('assignedTo', filters.assignedTo);
+    if (filters.dateRange) params.set('dateRange', filters.dateRange);
+    if (filters.search) params.set('search', filters.search);
+    return params.toString();
+  }, [filters]);
+
+  // Fetch tasks with TanStack Query - filter-aware query key
   const { data: tasks = initialTasks, isLoading } = useQuery<Task[]>({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', filters],
     queryFn: async () => {
-      const res = await fetch('/api/queries/tasks');
+      const url = queryString ? `/api/queries/tasks?${queryString}` : '/api/queries/tasks';
+      const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch tasks');
       return res.json();
     },
@@ -129,7 +161,7 @@ export function TaskTable({ initialTasks, users }: TaskTableProps) {
   const isAllSelected = tasks.length > 0 && selectedIds.size === tasks.length;
   const isSomeSelected = selectedIds.size > 0 && !isAllSelected;
 
-  // Mutation for status updates
+  // Mutation for status updates - filter-aware query key
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ taskId, status }: { taskId: string; status: string }) =>
       fetch('/api/tasks/update-status', {
@@ -140,10 +172,10 @@ export function TaskTable({ initialTasks, users }: TaskTableProps) {
 
     // Optimistic update
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ['tasks'] });
-      const previous = queryClient.getQueryData(['tasks']);
+      await queryClient.cancelQueries({ queryKey: ['tasks', filters] });
+      const previous = queryClient.getQueryData(['tasks', filters]);
 
-      queryClient.setQueryData(['tasks'], (old: Task[]) =>
+      queryClient.setQueryData(['tasks', filters], (old: Task[]) =>
         old.map((t) =>
           t.id === variables.taskId
             ? { ...t, status: variables.status.toUpperCase() as Task['status'] }
@@ -156,16 +188,16 @@ export function TaskTable({ initialTasks, users }: TaskTableProps) {
 
     // Rollback on error
     onError: (err, variables, context) => {
-      queryClient.setQueryData(['tasks'], context?.previous);
+      queryClient.setQueryData(['tasks', filters], context?.previous);
     },
 
     // Always refetch after settle
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', filters] });
     },
   });
 
-  // Realtime subscription - FETCH-ON-EVENT PATTERN
+  // Realtime subscription - FETCH-ON-EVENT PATTERN with filter-aware key
   useEffect(() => {
     const channel = supabase
       .channel('tasks-changes')
@@ -174,15 +206,15 @@ export function TaskTable({ initialTasks, users }: TaskTableProps) {
         schema: 'public',
         table: 'tasks',
       }, () => {
-        // Signal TanStack Query to refetch
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        // Signal TanStack Query to refetch with current filters
+        queryClient.invalidateQueries({ queryKey: ['tasks', filters] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient]);
+  }, [supabase, queryClient, filters]);
 
   if (isLoading) {
     return (
@@ -195,11 +227,19 @@ export function TaskTable({ initialTasks, users }: TaskTableProps) {
   }
 
   if (tasks.length === 0) {
+    const hasActiveFilters = Object.values(filters).some(
+      v => v !== undefined && (Array.isArray(v) ? v.length > 0 : true)
+    );
+
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground">No tasks yet.</p>
+        <p className="text-lg text-muted-foreground">
+          {hasActiveFilters ? 'No tasks match your filters.' : 'No tasks yet.'}
+        </p>
         <p className="text-sm text-muted-foreground mt-2">
-          Create your first task to get started.
+          {hasActiveFilters
+            ? 'Try adjusting your filters to see more results.'
+            : 'Create your first task to get started.'}
         </p>
       </div>
     );
