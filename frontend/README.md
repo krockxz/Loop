@@ -113,3 +113,44 @@ TanStack Query `onMutate` updates cache instantly, with automatic rollback on er
 | `npm run db:push` | Push schema to database |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:studio` | Open Prisma Studio |
+
+## Self-Hosting with Docker
+
+TaskFlow can be self-hosted using Docker. The Dockerfile uses Next.js standalone mode for optimal image size.
+
+### Build
+
+```bash
+docker build -t taskflow .
+```
+
+### Run
+
+```bash
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgresql://postgres.PROJECT_ID:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres" \
+  -e DIRECT_URL="postgresql://postgres:PASSWORD@db.REF.supabase.co:5432/postgres" \
+  -e NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
+  -e NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key" \
+  taskflow
+```
+
+### Using Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  taskflow:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    restart: unless-stopped
+```
+
+Then run: `docker-compose up -d`
