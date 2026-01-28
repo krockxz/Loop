@@ -121,6 +121,20 @@ export interface AssignTaskInput {
 }
 
 // ============================================================================
+// Filter Types
+// ============================================================================
+
+export type DateRangePreset = 'today' | 'last_7_days' | 'last_30_days' | 'last_90_days' | 'all_time';
+
+export interface TaskFilters {
+  status?: TaskStatus[];
+  priority?: TaskPriority[];
+  assignedTo?: string;
+  dateRange?: DateRangePreset;
+  search?: string;
+}
+
+// ============================================================================
 // API Response Types
 // ============================================================================
 
@@ -142,7 +156,7 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 // ============================================================================
 
 export const queryKeys = {
-  tasks: ['tasks'] as const,
+  tasks: (filters?: TaskFilters) => ['tasks', filters] as const,
   task: (id: string) => ['tasks', id] as const,
   notifications: ['notifications'] as const,
   notificationsUnread: ['notifications', 'unread-count'] as const,
