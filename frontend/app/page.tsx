@@ -184,7 +184,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Presence Indicators</h3>
               <p className="text-slate-400">
-                See who's viewing each task in real-time. Know when teammates are online and working on the same task.
+                See who&apos;s viewing each task in real-time. Know when teammates are online and working on the same task.
               </p>
             </div>
 
@@ -300,7 +300,7 @@ export default function LandingPage() {
               Ready to coordinate across timezones?
             </h2>
             <p className="text-xl text-slate-400 mb-8">
-              Self-hosted and open source. Take control of your team's workflow.
+              Self-hosted and open source. Take control of your team&apos;s workflow.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

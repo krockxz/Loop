@@ -5,6 +5,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig: NextConfig = {
+  // Enables minimal output for Docker deployments
+  // Produces a self-contained .next/standalone directory
+  output: 'standalone',
   reactStrictMode: true,
   experimental: {
     serverActions: {
