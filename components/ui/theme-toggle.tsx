@@ -8,7 +8,7 @@
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { useTheme } from '@/components/providers/theme-provider';
+import { useTheme } from 'next-themes';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 
@@ -19,7 +19,7 @@ export function ThemeToggle({
   className?: string;
   variant?: 'icon' | 'button';
 }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch

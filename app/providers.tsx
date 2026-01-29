@@ -2,7 +2,7 @@
  * Providers Wrapper
  *
  * Wraps the app with all necessary providers:
- * - ThemeProvider for dark/light mode
+ * - ThemeProvider (next-themes) for dark/light mode
  * - QueryClientProvider for server state management
  */
 
@@ -10,7 +10,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ThemeProvider } from '@/components/providers/theme-provider';
+import { ThemeProvider } from 'next-themes';
 import { useState, type ReactNode } from 'react';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -42,7 +42,12 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeProvider defaultTheme="system" storageKey="taskflow-theme">
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <QueryClientProvider client={queryClient}>
         {children}
         {process.env.NODE_ENV === 'development' && (

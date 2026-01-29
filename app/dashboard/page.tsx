@@ -9,17 +9,9 @@ import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/supabase/server';
 import prisma from '@/lib/prisma';
 import { TaskTable } from './components/TaskTable';
-import { NewTaskButton } from './components/NewTaskButton';
-import TaskFilters from './components/TaskFilters';
+import { NewTaskDialog } from './components/NewTaskDialog';
 import FilterChips from './components/FilterChips';
-import { Header } from '@/components/layout/Header';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { DashboardSidebar } from './components/DashboardSidebar';
 import type { TaskStatus, TaskPriority, DateRangePreset } from '@/lib/types';
 
 interface DashboardPageProps {
@@ -120,6 +112,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   // Convert Date objects to strings for type compatibility
   const serializedTasks = tasks.map((task) => ({
     ...task,
+    status: task.status as TaskStatus,
+    priority: task.priority as TaskPriority,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
   }));
@@ -131,33 +125,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        userEmail={user.email ?? 'Unknown'}
-        title="Dashboard"
-        description="Manage your tasks and track progress"
-        actions={<NewTaskButton />}
-      />
+    <DashboardSidebar users={users} userEmail={user.email ?? 'Unknown'}>
+      <header className="border-b px-6 py-4 flex items-center justify-between bg-background sticky top-0 z-10">
+        <div>
+          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Manage your tasks and track progress</p>
+        </div>
+        <NewTaskDialog users={users} />
+      </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle>Tasks</CardTitle>
-                <CardDescription>
-                  View and manage all your tasks
-                </CardDescription>
-              </div>
-              <TaskFilters users={users} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <FilterChips users={users} />
-            <TaskTable initialTasks={serializedTasks} users={users} />
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+      <div className="p-6">
+        <FilterChips users={users} />
+        <TaskTable initialTasks={serializedTasks} users={users} />
+      </div>
+    </DashboardSidebar>
   );
 }

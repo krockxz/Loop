@@ -23,7 +23,7 @@ TaskFlow is an open source, self-hostable task management tool designed for dist
 
 ### Option 1: Deploy to Vercel (Recommended)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/taskflow)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/krockxz/TaskFlow)
 
 1. Click the button above
 2. Connect your GitHub account
@@ -33,7 +33,7 @@ TaskFlow is an open source, self-hostable task management tool designed for dist
 ### Option 2: Self-Host with Docker
 
 ```bash
-git clone https://github.com/your-username/taskflow.git
+git clone https://github.com/krockxz/TaskFlow.git
 cd taskflow
 docker build -t taskflow .
 docker run -p 3000:3000 --env-file .env.local taskflow

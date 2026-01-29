@@ -54,9 +54,11 @@ type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface TaskFormProps {
   users: Pick<User, 'id' | 'email'>[];
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export function TaskForm({ users }: TaskFormProps) {
+export function TaskForm({ users, onSuccess, onCancel }: TaskFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,7 +96,11 @@ export function TaskForm({ users }: TaskFormProps) {
         throw new Error(data.error || 'Failed to create task');
       }
 
-      router.push('/dashboard');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push('/dashboard');
+      }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -214,7 +220,10 @@ export function TaskForm({ users }: TaskFormProps) {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => {
+              if (onCancel) onCancel();
+              else router.push('/dashboard');
+            }}
             disabled={isSubmitting}
           >
             Cancel

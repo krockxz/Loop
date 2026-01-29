@@ -79,7 +79,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} TaskFlow · MIT License
+            © {currentYear} TaskFlow
           </p>
           <a
             href="https://github.com/kunal/TaskFlow"

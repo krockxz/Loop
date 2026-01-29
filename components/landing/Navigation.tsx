@@ -14,7 +14,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useTheme } from '@/components/providers/theme-provider';
+import { useTheme } from 'next-themes';
 
 type Provider = 'google' | 'github';
 
@@ -99,11 +99,10 @@ export function Navigation() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-colors ${
-          scrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-colors ${scrolled
             ? 'bg-background/80 backdrop-blur-md border-b border-border'
             : ''
-        }`}
+          }`}
       >
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
