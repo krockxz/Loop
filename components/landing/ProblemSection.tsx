@@ -1,25 +1,25 @@
 /**
- * Problem Section - Split view comparison
+ * Problem Section - Theme-aware split view
  *
- * Before/After code comparison instead of cards.
+ * Before/After code comparison that adapts to light/dark theme.
  */
 
 'use client';
 
-import { SplitView } from './';
+import { SplitView } from './.';
 
 export function ProblemSection() {
   return (
-    <section className="py-20 px-6 bg-[#161b22]">
+    <section className="py-20 px-6 bg-muted/30">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full bg-[#f8514926] text-[#f85149] text-sm font-mono-display mb-4">
+          <span className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-sm font-mono-display mb-4">
             The Problem
           </span>
-          <h2 className="text-3xl font-bold text-[#f0f6fc] mb-4">
+          <h2 className="text-3xl font-bold text-foreground mb-4">
             Async teamwork is broken
           </h2>
-          <p className="text-lg text-[#8b949e] max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Modern tools weren&apos;t built for distributed teams. See the difference.
           </p>
         </div>

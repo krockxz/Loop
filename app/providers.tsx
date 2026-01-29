@@ -1,14 +1,16 @@
 /**
- * TanStack Query Provider (v5)
+ * Providers Wrapper
  *
- * Wraps the app with QueryClientProvider for server state management.
- * Handles caching, optimistic updates, and automatic refetching.
+ * Wraps the app with all necessary providers:
+ * - ThemeProvider for dark/light mode
+ * - QueryClientProvider for server state management
  */
 
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { useState, type ReactNode } from 'react';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -40,14 +42,16 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          position="bottom"
-        />
-      )}
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="taskflow-theme">
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            position="bottom"
+          />
+        )}
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
