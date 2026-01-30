@@ -1,7 +1,7 @@
 /**
- * Footer - Theme-aware
+ * Footer - Vercel Design System
  *
- * Simplified 2-column footer that adapts to light/dark theme.
+ * Minimal footer with monochrome palette.
  */
 
 import { Zap, Github } from 'lucide-react';
@@ -24,28 +24,28 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="py-12 px-6 bg-muted/30 border-t border-border">
+    <footer className="py-16 px-6 bg-background border-t border-border">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          {/* Brand - monochrome logo */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-sky-500 to-violet-500 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center">
+                <Zap className="w-4 h-4 text-background" />
               </div>
-              <span className="font-mono-display text-lg font-bold text-foreground">
+              <span className="font-mono-display text-lg font-semibold text-foreground tracking-tight">
                 TaskFlow
               </span>
             </Link>
-            <p className="mt-3 text-sm text-muted-foreground max-w-xs">
+            <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
               Async team coordination for modern distributed teams.
             </p>
           </div>
 
           {/* Links - 2 columns only */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Product</h3>
-            <ul className="space-y-2">
+            <h3 className="text-sm font-semibold text-foreground mb-4 tracking-tight">Product</h3>
+            <ul className="space-y-3">
               {links.product.map((link) => (
                 <li key={link.name}>
                   <a
@@ -60,8 +60,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Resources</h3>
-            <ul className="space-y-2">
+            <h3 className="text-sm font-semibold text-foreground mb-4 tracking-tight">Resources</h3>
+            <ul className="space-y-3">
               {links.resources.map((link) => (
                 <li key={link.name}>
                   <a
@@ -78,7 +78,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground/70">
             © {currentYear} TaskFlow
           </p>
           <a

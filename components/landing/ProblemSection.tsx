@@ -1,22 +1,22 @@
 /**
- * Problem Section - Theme-aware split view
+ * Problem Section - Vercel Design System
  *
- * Before/After code comparison that adapts to light/dark theme.
+ * Before/After comparison with monochrome palette and subtle borders.
  */
 
 'use client';
 
-import { SplitView } from './.';
+import { SplitView } from '.';
 
 export function ProblemSection() {
   return (
-    <section className="py-20 px-6 bg-muted/30">
+    <section className="py-32 px-6 bg-secondary/50">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-sm font-mono-display mb-4">
+        <div className="text-center mb-16">
+          <span className="inline-block px-3 py-1.5 rounded-full bg-secondary border border-border text-foreground/60 text-xs font-medium tracking-tight-vercel mb-6">
             The Problem
           </span>
-          <h2 className="text-3xl font-bold text-foreground mb-4">
+          <h2 className="text-4xl font-semibold text-foreground mb-5 tracking-tight-vercel">
             Async teamwork is broken
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

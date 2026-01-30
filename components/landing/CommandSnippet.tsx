@@ -1,7 +1,7 @@
 /**
- * CommandSnippet - Theme-aware copyable command
+ * CommandSnippet - Vercel Design System
  *
- * Click to copy with success feedback. Adapts to light/dark theme.
+ * Click to copy with monochrome palette.
  */
 
 'use client';
@@ -27,7 +27,7 @@ export function CommandSnippet({ command, label = 'npm install' }: CommandSnippe
     <div className="group relative">
       <button
         onClick={handleCopy}
-        className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted border border-border hover:border-muted-foreground/50 transition-all w-full sm:w-auto"
+        className="flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border hover:border-foreground/30 transition-all w-full sm:w-auto"
         aria-label={`Copy ${command}`}
       >
         <span className="text-muted-foreground text-sm font-mono-display">$</span>
@@ -35,7 +35,7 @@ export function CommandSnippet({ command, label = 'npm install' }: CommandSnippe
           {command}
         </span>
         {copied ? (
-          <Check className="w-4 h-4 text-emerald-500" />
+          <Check className="w-4 h-4 text-foreground" />
         ) : (
           <Copy className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
         )}

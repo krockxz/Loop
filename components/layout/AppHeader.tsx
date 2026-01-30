@@ -7,15 +7,17 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
-import { Zap, Github, Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Zap, Github, Menu, X, LogOut, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NotificationBell } from './NotificationBell';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { createClient } from '@/lib/supabase/client';
+import { signOut } from '@/lib/auth/oauth-helpers';
 
 // Extracted Logo component (DRY principle)
 function Logo({ href }: { href: string }) {
@@ -30,10 +32,26 @@ function Logo({ href }: { href: string }) {
 }
 
 export function AppHeader() {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userEmail, setUserEmail] = useState<string>('');
     const [mobileOpen, setMobileOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+
+    const handleLogout = async () => {
+        const { error } = await signOut();
+        if (!error) {
+            // Update state immediately for smooth UX
+            setIsAuthenticated(false);
+            setUserEmail('');
+            // Navigate and refresh server components
+            startTransition(() => {
+                router.push('/');
+                router.refresh();
+            });
+        }
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -82,8 +100,15 @@ export function AppHeader() {
                                 <NotificationBell />
                                 <Separator orientation="vertical" className="h-6" />
                                 <span className="text-sm text-muted-foreground">{userEmail}</span>
-                                <Button variant="ghost" size="sm" asChild>
-                                    <a href="/api/auth/logout">Sign out</a>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleLogout}
+                                    disabled={isPending}
+                                    className="gap-2"
+                                >
+                                    {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                                    Sign out
                                 </Button>
                             </>
                         ) : (
@@ -143,8 +168,15 @@ export function AppHeader() {
                                         <NotificationBell />
                                     </div>
                                     <div className="text-sm text-muted-foreground">{userEmail}</div>
-                                    <Button variant="outline" size="sm" className="w-full" asChild>
-                                        <a href="/api/auth/logout">Sign out</a>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-2"
+                                        onClick={handleLogout}
+                                        disabled={isPending}
+                                    >
+                                        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                                        Sign out
                                     </Button>
                                 </>
                             ) : (

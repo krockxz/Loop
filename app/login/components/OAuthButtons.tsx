@@ -7,17 +7,12 @@
 
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Chrome, Github } from 'lucide-react';
+import { Chrome, Github, Loader2 } from 'lucide-react';
+import { signInWithOAuth, type OAuthProvider } from '@/lib/auth/oauth-helpers';
+import { useState } from 'react';
 
-type Provider = 'google' | 'github';
-
-interface OAuthButtonsProps {
-  redirectTo?: string;
-}
-
-const PROVIDERS: Record<Provider, { name: string; icon: React.ReactNode }> = {
+const PROVIDERS: Record<OAuthProvider, { name: string; icon: React.ReactNode }> = {
   google: {
     name: 'Google',
     icon: <Chrome className="h-5 w-5" />,
@@ -28,26 +23,28 @@ const PROVIDERS: Record<Provider, { name: string; icon: React.ReactNode }> = {
   },
 };
 
+interface OAuthButtonsProps {
+  redirectTo?: string;
+}
+
 export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
-  const handleSocialLogin = async (provider: Provider) => {
-    const supabase = createClient();
+  const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
-      },
-    });
-
+  const handleSocialLogin = async (provider: OAuthProvider) => {
+    setLoadingProvider(provider);
+    const { error } = await signInWithOAuth(provider, { redirectTo });
     if (error) {
       console.error(`Error signing in with ${provider}:`, error);
+      setLoadingProvider(null);
     }
+    // OAuth redirect happens automatically on success
   };
 
   return (
     <div className="space-y-3">
-      {(Object.keys(PROVIDERS) as Provider[]).map((provider) => {
+      {(Object.keys(PROVIDERS) as OAuthProvider[]).map((provider) => {
         const config = PROVIDERS[provider];
+        const isLoading = loadingProvider === provider;
 
         return (
           <Button
@@ -56,8 +53,9 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
             variant="outline"
             type="button"
             className="w-full gap-2"
+            disabled={!!loadingProvider}
           >
-            {config.icon}
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : config.icon}
             <span>Continue with {config.name}</span>
           </Button>
         );

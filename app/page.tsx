@@ -1,7 +1,7 @@
 /**
- * TaskFlow Landing Page - 2026 Minimalist Design
+ * TaskFlow Landing Page - Vercel Design System
  *
- * Clean, focused landing with single accent color and minimal effects.
+ * Clean, focused landing with monochrome palette.
  */
 
 import {
@@ -18,9 +18,12 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       <main>
         <HeroSection />
+        <div className="section-divider max-w-6xl mx-auto" />
         <ProblemSection />
+        <div className="section-divider max-w-6xl mx-auto" />
         <SolutionSection />
         <FeaturesSection />
+        <div className="section-divider max-w-6xl mx-auto" />
         <CTASection />
       </main>
 

@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import {
     LayoutDashboard,
-    Settings,
+    LogOut,
     Search,
     ChevronDown,
     Filter,
@@ -11,9 +13,11 @@ import {
     Flag,
     CheckCircle2,
     Users,
+    Loader2,
 } from "lucide-react";
 import { useTaskFilters } from "@/app/dashboard/hooks/useTaskFilters";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/lib/auth/oauth-helpers";
 
 // Softer spring animation curve
 const softSpringEasing = "cubic-bezier(0.25, 1.1, 0.4, 1)";
@@ -150,6 +154,19 @@ function IconNavigation({
     onSectionChange: (section: string) => void;
     userEmail: string;
 }) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+
+    const handleLogout = async () => {
+        const { error } = await signOut();
+        if (!error) {
+            startTransition(() => {
+                router.push('/');
+                router.refresh();
+            });
+        }
+    };
+
     const navItems = [
         { id: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
         { id: "filters", icon: <Filter size={20} />, label: "Filters" },
@@ -182,10 +199,10 @@ function IconNavigation({
             <div className="flex flex-col gap-3 w-full items-center mb-4">
                 <IconNavButton
                     isActive={false}
-                    onClick={() => window.location.href = '/api/auth/logout'}
+                    onClick={handleLogout}
                     tooltip="Sign Out"
                 >
-                    <Settings size={20} />
+                    {isPending ? <Loader2 size={20} className="animate-spin" /> : <LogOut size={20} />}
                 </IconNavButton>
                 <div className="size-8" title={userEmail}>
                     <AvatarCircle email={userEmail} />
