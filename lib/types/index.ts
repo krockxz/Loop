@@ -176,3 +176,24 @@ export interface RegisterInput {
   email: string;
   password: string;
 }
+
+// ============================================================================
+// Command Palette Types
+// ============================================================================
+
+export interface CommandAction {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  keywords?: string[];
+  onSelect: () => void;
+  context?: 'global' | 'task' | 'dashboard';
+}
+
+export interface CommandContextValue {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  actions: CommandAction[];
+  registerAction: (action: CommandAction) => void;
+  unregisterAction: (id: string) => void;
+}
