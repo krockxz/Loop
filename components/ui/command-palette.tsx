@@ -12,14 +12,11 @@ import {
   LayoutDashboard,
   Plus,
   Settings,
-  User,
-  Bell,
-  HelpCircle,
-  LogOut,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCommand } from "@/components/command/CommandContext";
-import * as LucideIcons from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
@@ -58,9 +55,39 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [commandHistory, setCommandHistory] = useState<CommandHistory[]>(() => {
-    const savedHistory = typeof window !== "undefined" ? localStorage.getItem("tfCommandHistory") : null;
-    return savedHistory ? JSON.parse(savedHistory) : [];
+    try {
+      const savedHistory = typeof window !== "undefined" ? localStorage.getItem("tfCommandHistory") : null;
+      return savedHistory ? JSON.parse(savedHistory) : [];
+    } catch (e) {
+      return [];
+    }
   });
+
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check auth state
+  useEffect(() => {
+    const supabase = createClient();
+
+    // Get initial session
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Auth check failed", error);
+        setLoading(false);
+      });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const ref = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -202,7 +229,7 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
       shortcut: "⌘N",
       keywords: ["create", "new", "task", "add"],
     },
-    ], [theme]);
+  ], [theme]);
 
   // Combine static and dynamic commands
   const combinedCommandItems = useMemo(() => {
@@ -300,11 +327,11 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
     }
   }, [open]);
 
-  // Get all available categories
-  const categories = [...new Set(combinedCommandItems.map((cmd) => cmd.category))];
-
   // Keyboard handler
   useEffect(() => {
+    // Only enable shortcut if authenticated
+    if (!session) return;
+
     const down = (e: KeyboardEvent) => {
       // Toggle command palette with Cmd/Ctrl+K
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -340,7 +367,7 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [open, selectedIndex, commandItems, recordCommandUsage]);
+  }, [open, selectedIndex, commandItems, recordCommandUsage, session]);
 
   // Scroll selected item into view
   useEffect(() => {
@@ -378,6 +405,11 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, commandItems().length);
   }, [commandItems]);
+
+  // Don't render anything if not authenticated or loading
+  if (loading || !session) {
+    return null;
+  }
 
   return (
     <>
@@ -473,9 +505,8 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
                           <div
                             key={task.id}
                             ref={(el) => setItemRef(el, idx)}
-                            className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${
-                              selectedIndex === idx ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
-                            }`}
+                            className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${selectedIndex === idx ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                              }`}
                             onClick={() => {
                               router.push(`/tasks/${task.id}`);
                               setOpen(false);
@@ -483,16 +514,14 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
                             }}
                           >
                             <div className="flex items-center gap-2.5">
-                              <div className={`flex h-8 w-8 items-center justify-center rounded-md border ${
-                                task.status === 'done' ? 'bg-green-500/10 border-green-500/20' :
+                              <div className={`flex h-8 w-8 items-center justify-center rounded-md border ${task.status === 'done' ? 'bg-green-500/10 border-green-500/20' :
                                 task.status === 'in-progress' ? 'bg-blue-500/10 border-blue-500/20' :
-                                'bg-gray-500/10 border-gray-500/20'
-                              }`}>
-                                <div className={`h-2 w-2 rounded-full ${
-                                  task.status === 'done' ? 'bg-green-500' :
+                                  'bg-gray-500/10 border-gray-500/20'
+                                }`}>
+                                <div className={`h-2 w-2 rounded-full ${task.status === 'done' ? 'bg-green-500' :
                                   task.status === 'in-progress' ? 'bg-blue-500' :
-                                  'bg-gray-500'
-                                }`} />
+                                    'bg-gray-500'
+                                  }`} />
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-sm font-medium">{task.title}</span>
@@ -523,9 +552,8 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
                             <div
                               key={item.id}
                               ref={(el) => setItemRef(el, globalIdx)}
-                              className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${
-                                isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
-                              }`}
+                              className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                                }`}
                               onClick={() => {
                                 setSelectedIndex(globalIdx);
                                 item.action();
@@ -564,9 +592,8 @@ export default function TaskFlowCommandPalette({ triggerButton }: TaskFlowComman
                             <div
                               key={item.id}
                               ref={(el) => setItemRef(el, globalIdx)}
-                              className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${
-                                isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
-                              }`}
+                              className={`mx-2 flex cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-colors ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                                }`}
                               onClick={() => {
                                 setSelectedIndex(globalIdx);
                                 item.action();
